@@ -1,0 +1,50 @@
+function test_example_CNN
+% load mnist_uint8;
+
+% train_x = double(reshape(train_x',28,28,60000))/255;
+% test_x = double(reshape(test_x',28,28,10000))/255;
+% train_y = double(train_y');
+% test_y = double(test_y');
+
+train_x = importdata('E:\深度学习动物识别\trainSet.csv');
+train_x = train_x(2001:3000,:);
+train_x = double(reshape(train_x',200,200,1000))/255;
+train_y = importdata('E:\深度学习动物识别\trainLabel.csv');
+test_x = importdata('E:\深度学习动物识别\testSet.csv');
+test_x = double(reshape(test_x',200,200,100))/255;
+test_x = test_x(450:550,:);
+test_y = importdata('E:\深度学习动物识别\testLabel.csv');
+
+size(train_x)
+size(train_y)
+train_y = train_y(2001:3000,:);
+test_y = double(test_y');
+test_y = test_y(450:550,:);
+size(test_x)
+%% ex1 Train a 6c-2s-12c-2s Convolutional neural network 
+%will run 1 epoch in about 200 second and get around 11% error. 
+%With 100 epochs you'll get around 1.2% error
+
+rand('state',0)
+
+cnn.layers = {
+    struct('type', 'i') %input layer
+    struct('type', 'c', 'outputmaps', 6, 'kernelsize', 5) %convolution layer
+    struct('type', 's', 'scale', 2) %sub sampling layer
+    struct('type', 'c', 'outputmaps', 12, 'kernelsize', 5) %convolution layer
+    struct('type', 's', 'scale', 2) %subsampling layer
+};
+
+
+opts.alpha = 1;
+opts.batchsize = 50;
+opts.numepochs = 1;
+
+cnn = cnnsetup(cnn, train_x, train_y);
+cnn = cnntrain(cnn, train_x, train_y, opts);
+
+[er, bad] = cnntest(cnn, test_x, test_y);
+
+%plot mean squared error
+figure; plot(cnn.rL);
+assert(er<0.12, 'Too big error');
